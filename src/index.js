@@ -8,7 +8,7 @@ const TODO = 'TODO';
 const DOING = 'DOING';
 const DONE = 'DONE';
 
-const grid = 8;
+const grid = 10;
 
 /**
  * Reorder an items in the list.
@@ -44,7 +44,9 @@ const getItemStyle = (draggableStyle) => ({
     padding: grid * 2,
     margin: `0 0 ${grid}px 0`,
     borderRadius: "15px",
-    background: "#ade6d8",
+    background: "#808080",
+    color: "#FFFFFF",
+    fontFamily: "Verdana",
     // styles we need to apply on draggables
     ...draggableStyle
 });
@@ -80,7 +82,7 @@ function deleteTicket(id, callback) {
 
 const formatDate = (datetime) => {
     let date = new Date(datetime);
-    return date.getDate() +'.'+ (date.getMonth()+1) + '.'+date.getFullYear() + '  ' + date.getHours() + ':' + date.getMinutes()+ ':' + date.getSeconds();
+    return date.getDate() +'.'+ (date.getMonth()+1) + '.'+ date.getFullYear() + '  ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes()+ ':' + date.getSeconds();
 };
 
 
@@ -90,6 +92,7 @@ function App() {
     const [showModal, setShowModal] = useState();
     const [title, setTitle] = useState();
     const [status, setStatus] = useState();
+    const [statuses, setStatuses] = useState([]);
     const [description, setDescription] = useState();
     const [editTicketId, setEditTicketId] = useState();
     const [editTicket, setEditTicket] = useState();
@@ -109,6 +112,17 @@ function App() {
                         return ticket.status === DONE;
                     });
                     setState([todo, doing, done]);
+                }
+            )
+
+    }, []);
+
+    useEffect(() => {
+        fetch('http://localhost:8080/v1/tickets/statuses', {method : 'GET'})
+            .then(response => response.json())
+            .then(
+                (response) => {
+                    setStatuses(response.statuses);
                 }
             )
     }, []);
@@ -139,6 +153,7 @@ function App() {
 
     function toggleModal () {
         setShowModal(!showModal);
+        clear();
     }
 
     function submitTicket() {
@@ -147,6 +162,15 @@ function App() {
         } else {
             createTicket();
         }
+        clear();
+    }
+
+    function clear() {
+        setEditTicket(false);
+        setEditTicketId(null);
+        setTitle(null);
+        setStatus(null);
+        setDescription(null);
     }
 
     function createTicket() {
@@ -205,7 +229,7 @@ function App() {
                                                     )}
                                                 >
                                                     <div>
-                                                        <div className="row" style={{marginBottom:10}}>
+                                                        <div className="row" style={{marginBottom:10, fontWeight:"bold", fontSize:14}}>
                                                             <div className="col">
                                                                 <span>{item.title}</span>
                                                             </div>
@@ -213,24 +237,24 @@ function App() {
                                                                 <span>{item.status}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="row" style={{marginBottom:10}}>
+                                                        <div className="row" style={{marginBottom:10, fontSize:13}}>
                                                             <span>{item.description}</span>
                                                         </div>
                                                         <div className="row">
                                                             <div className="col"><span style={{fontSize:12}}>
                                                                 {formatDate(item.dateTime)}
                                                             </span></div>
-                                                            <div className="col-md-auto">
+                                                            <div className="col-md-auto" style={{paddingRight:0}}>
                                                                 <Button
-                                                                    className="btn btn-sm"
+                                                                    className="btn btn-dark btn-sm"
                                                                     onClick={() => {
+                                                                        toggleModal();
                                                                         setModalTitle("Edit Ticket");
                                                                         setEditTicket(true);
                                                                         setEditTicketId(item.id);
                                                                         setTitle(item.title);
                                                                         setStatus(item.status);
                                                                         setDescription(item.description);
-                                                                        toggleModal();
                                                                     }}
                                                                 >
                                                                     Edit
@@ -238,7 +262,7 @@ function App() {
                                                             </div>
                                                             <div className="col-md-auto">
                                                                 <Button
-                                                                    className="btn btn-danger btn-sm"
+                                                                    className="btn btn-dark btn-sm"
                                                                     onClick={() => {
                                                                         deleteTicket(item.id, function () {
                                                                             const newState = [...state];
@@ -264,12 +288,13 @@ function App() {
                 </DragDropContext>
             </div>
             <Button
-                variant="primary"
+                className="btn btn-dark"
                 style={{margin:25}}
                 onClick={() => {
+                    toggleModal();
                     setModalTitle("Add Ticket");
                     setEditTicket(false);
-                    toggleModal();
+                    setStatus(statuses[0]);
                 }}
             >
                 Add Ticket
@@ -279,6 +304,7 @@ function App() {
                 showModal={showModal}
                 closeModal={toggleModal}
                 title={title}
+                statuses={statuses}
                 status={status}
                 description={description}
                 setTitle={setTitle}

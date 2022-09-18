@@ -1,18 +1,18 @@
 import React from 'react';
-import { Button, Modal, Form } from "react-bootstrap";
+import {Button, Modal, Form} from "react-bootstrap";
 
 
 export default function TicketForm({modalTitle,
                                        showModal,
                                        closeModal,
                                        title,
+                                       statuses,
                                        status,
                                        description,
                                        setTitle,
                                        setStatus,
                                        setDescription,
                                        submitTicketForm}) {
-
 
     return(
         <div>
@@ -30,23 +30,30 @@ export default function TicketForm({modalTitle,
                         <Form.Group className="mb-3" controlId="ticketTitle">
                             <Form.Control type="text"
                                           value={title}
-                                          placeholder="title"
-                                          onChange={titleChanged}
+                                          placeholder="Title"
+                                          onChange={e => {
+                                              setTitle(e.target.value);
+                                          }}
+                                          required
                             />
                         </Form.Group>
-                        {/* TODO change to dropdown */}
                         <Form.Group className="mb-3" controlId="ticketStatus">
-                            <Form.Control type="text"
+                            <Form.Control as="select"
                                           value={status}
-                                          placeholder="Status"
-                                          onChange={statusChanged}
-                            />
+                                          onChange={e => {
+                                              setStatus(e.target.value);
+                                          }}
+                            >
+                                {statuses.map((status) => <option value={status}>{status}</option>)}
+                            </Form.Control>
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="ticketDescription">
                             <Form.Control type="text"
                                           value={description}
                                           placeholder="Description"
-                                          onChange={descriptionChanged}
+                                          onChange={e => {
+                                              setDescription(e.target.value);
+                                          }}
                             />
                         </Form.Group>
                         <Modal.Footer>
@@ -60,17 +67,4 @@ export default function TicketForm({modalTitle,
             </Modal>
       </div>
     );
-
-    function titleChanged(event) {
-        setTitle(event.target.value);
-    };
-
-    function statusChanged(event) {
-        setStatus(event.target.value);
-    };
-
-    function descriptionChanged(event) {
-        setDescription(event.target.value);
-    };
-
 }
